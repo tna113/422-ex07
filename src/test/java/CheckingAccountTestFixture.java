@@ -31,6 +31,9 @@ public class CheckingAccountTestFixture {
 
     private static List<TestScenario> testScenarios;
 
+    //executes all scenarios in the testScenatios field
+    //each scenario: starting balance, widthdrawal transactions, deposit transactions, check transactions, ending balance
+    //account created -> transactions performed -> final balance compared with expected ending balance given the test scenario definition
     @Test
     public void runTestScenarios() throws Exception {
         if (testScenarios == null) {
@@ -49,25 +52,30 @@ public class CheckingAccountTestFixture {
 
         // iterate over all test scenarios
         for (int testNum = 0; testNum < testScenarios.size(); testNum++) {
-            TestScenario scenario = testScenarios.get(testNum);
+            TestScenario scenario = testScenarios.get(testNum); //get i item from list
             logger.info("**** Running test for {}", scenario);
 
             // set up account with specified starting balance
+            // CheckingAccount(String name, long id, double balance, long checkNumber, long ownerId)
             CheckingAccount ca = new CheckingAccount(
                     "test "+testNum, -1, scenario.initBalance, 0, -1);
 
             // now process checks, withdrawals, deposits
+            // write a check, withdraw from balance
             for (double checkAmount : scenario.checks) {
                 ca.writeCheck("CHECK", checkAmount, new Date());
             }
+            // withdraw from balance
             for (double withdrawalAmount : scenario.withdrawals) {
                 ca.withdraw(withdrawalAmount);
             }
+            // deposit into balance
             for (double depositAmount : scenario.deposits) {
                 ca.deposit(depositAmount);
             }
 
             // run month-end if desired and output register
+            // if (true) balance <  minimum balance (minimum balance charge)
             if (scenario.runMonthEnd) {
                 ca.monthEnd();
                 for (RegisterEntry entry : ca.getRegisterEntries()) {
@@ -175,8 +183,16 @@ public class CheckingAccountTestFixture {
         // ...or, we could also specify a single scenario on the command line,
         // for example "-t '10, 20|20, , 40|10, 0'"
         // Note the single-quotes because of the embedded spaces and the pipe symbol
-        System.out.println("Command-line arguments passed in: " + java.util.Arrays.asList(args));
-        
+        // System.out.println("Command-line arguments passed in: " + java.util.Arrays.asList(args));
+
+
+        System.out.println("\n\n****** FROM COMMAND LINE (FILE NAME) ******\n");
+        System.out.println("Command-line argument passed in: " + args[0]);
+      var fileName = "src/test/resources/" + args[0] + ".csv";
+        List<String> scenarioStringsFromFileName = Files.readAllLines(Paths.get(fileName));
+        testScenarios = parseScenarioStrings(scenarioStringsFromFileName);
+        runJunitTests();
+      
         System.out.println("DONE");
     }
 }

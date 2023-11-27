@@ -64,20 +64,32 @@ public class SavingsAccountTestFixture {
 
             // set up account with specified starting balance and interest rate
             // TODO: Add code to create account....
+            SavingsAccount sa = new SavingsAccount(
+              "test"+testNum, -1, scenario.initBalance, scenario.interestRate, -1);
 
             // now process withdrawals, deposits
             // TODO: Add code to process withdrawals....
+            for (double withdrawalAmount : scenario.withdrawals) {
+              sa.withdraw(withdrawalAmount);
+            }
 
             // TODO: Add code to process deposits
+            for (double depositAmount : scenario.deposits) {
+              sa.deposit(depositAmount);
+            }
 
             // run month-end if desired and output register
             if (scenario.runMonthEndNTimes > 0) {
                 // TODO: Add code to run month-end....
+                sa.monthEnd();
+                for (RegisterEntry entry : sa.getRegisterEntries()) {
+                  logger.info("Register Entry {} -- {}: {}", entry.id(), entry.entryName(), entry.amount());
+                }
             }
 
             // make sure the balance is correct
             // TODO: add code to verify balance
-
+            assertThat("Test #" + testNum + ":" + scenario, sa.getBalance(), is(scenario.endBalance));
         }
     }
 
@@ -139,15 +151,17 @@ public class SavingsAccountTestFixture {
 
         // TODO: Instead of hardcoded "false", determine if tests are coming from file or cmdline
         // Note: testsFromFile is just a suggestion, you don't have to use testsFromFile or even an if/then statement!
-        boolean testsFromFile = false;
+        boolean testsFromFile = true;
 
         // Note: this is just a suggestion, you don't have to use testsFromFile or even an if/then statement!
         if (testsFromFile) {
             // if populating with scenarios from a CSV file...
             // TODO: We could get the filename from the cmdline, e.g. "-f CheckingAccountScenarios.csv"
-            System.out.println("\n\n****** FROM FILE ******\n");
+            System.out.println("\n\n****** FROM COMMAND LINE (FILE NAME) ******\n");
             // TODO: get filename from cmdline and use instead of TEST_FILE constant
-            List<String> scenarioStringsFromFile = Files.readAllLines(Paths.get(TEST_FILE));
+            var fileName = "src/test/resources/" + args[0] + ".csv";
+          System.out.println("file path with command line file name: " + fileName);
+            List<String> scenarioStringsFromFile = Files.readAllLines(Paths.get(fileName));
             // Note: toArray converts from a List to an array
             testScenarios = parseScenarioStrings(scenarioStringsFromFile);
             runJunitTests();
@@ -158,7 +172,10 @@ public class SavingsAccountTestFixture {
             // Note the single-quotes above ^^^ because of the embedded spaces and the pipe symbol
             System.out.println("Command-line arguments passed in: " + java.util.Arrays.asList(args));
             // TODO: write the code to "parse" scenario into a suitable string
+            List<String> scenarioStrings = List.of(args);
             // TODO: get TestScenario object from above string and store to testScenarios static var
+            List<TestScenario> parsedScenarios = parseScenarioStrings(scenarioStrings);
+            testScenarios = parsedScenarios;
             runJunitTests();
         }
         System.out.println("DONE");
